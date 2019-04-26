@@ -13,12 +13,12 @@ export const createUser = () => {
       if (!isValid) throw errors;
 
       return models.User.create({ ...req.body }, {
-        fields: [...enums]
+        fields: [...enums, 'id']
       })
     })
-    .then(createdUser => res.status(200).json({
+    .then(createdUser => res.status(201).json({
       createdUser,
-      message: 'user created successfully!'
+      message: 'User created successfully!'
     }))
     .catch(error => next(error))
   }
@@ -26,26 +26,26 @@ export const createUser = () => {
 
 export const addContact = () => {
   return (req, res, next) => {
-    const enums = ['userId', 'contactId'];
+    const enums = ['ownerId', 'contactId'];
     const { isValid, errors } = ValidatorClass.validateFieldsSync(enums, req.body)
 
     if(!isValid) return next(errors);
 
     return models.User.findAll({
       where: {
-        id: [req.body.userId, req.body.contactId],
+        id: [req.body.ownerId, req.body.contactId],
       }
     })
     .then((foundUsers) => {
       if (!foundUsers.length) throw errorFunction('user or contact does not exist', 404);
 
-      const userInstance = foundUsers.find((instance) => instance.id === req.body.userId);
+      const userInstance = foundUsers.find((instance) => instance.id === req.body.ownerId);
       const contactInstance = foundUsers.find((instance) => instance.id === req.body.contactId);
 
       if (!userInstance) throw errorFunction('user does not exist', 404);
       if (!contactInstance) throw errorFunction('contact does not exist', 404);
 
-      return userInstance.createContact({ userId: userInstance.id, contactId: contactInstance.id })
+      return userInstance.createContact({ contactId: contactInstance.id })
     })
     .then(() => res.status(200).json({
       message: 'Contact added successfully!'
@@ -54,7 +54,7 @@ export const addContact = () => {
   }
 }
 
-export const addMessage = () => {
+export const sendMessage = () => {
   return (req, res, next) => {
     const enums = ['senderId', 'receiverId', 'message', 'status'];
     const { isValid, errors } = ValidatorClass.validateFieldsSync(enums, req.body);
@@ -70,9 +70,10 @@ export const addMessage = () => {
 
       const senderInstance = foundUsers.find((instance) => instance.id === req.body.senderId);
       const receiverInstance = foundUsers.find((instance) => instance.id === req.body.receiverId);
+      req.senderInstance = senderInstance;
 
-      if (!senderInstance) throw errorFunction('user does not exist', 404);
-      if (!receiverInstance) throw errorFunction('contact does not exist', 404);
+      if (!senderInstance) throw errorFunction('sender does not exist', 404);
+      if (!receiverInstance) throw errorFunction('receiver does not exist', 404);
 
       return senderInstance.getContacts({
         where: {
@@ -81,16 +82,15 @@ export const addMessage = () => {
       })
     })
     .then((foundContact) => {
-      if(!foundContact) throw errorFunction('receiver is not yet a contact, please add as contact first!', 422);
-      const { message, status, receiverId, senderId } = req.body;
-      console.log({ contact: foundContact[0] })
+      if(!foundContact.length) throw errorFunction('receiver is not yet a contact, please add as contact first!', 422);
+      const { message, status, receiverId } = req.body;
 
-      return foundContact[0].createMessage({
-        message, status, receiverId, senderId,
+      return req.senderInstance.createMessage({
+        message, status, receiverId
       })
     })
     .then(() => res.status(200).json({
-      message: req.body.status !== 'failed' ? 'message sent successfully!' : 'message not successfully sent!'
+      message: 'message sent successfully!',
     }))
     .catch(error => next(error))
   }
@@ -100,16 +100,12 @@ export const getSentMessages = () => {
   return (req, res, next) => {
     return models.User.findOne({
       where: {
-        id: req.body.senderId,
-      }
+        id: req.params.senderId,
+      },
     }).then((founduser) => {
       if (!founduser) throw errorFunction('user not found!', 404);
 
-      return founduser.getMessages({
-        where: {
-          senderId: req.body.senderId,
-        }
-      })
+      return founduser.getMessages()
     })
     .then((messages) => res.status(200).json({
       messages,
@@ -124,16 +120,16 @@ export const getReceivedMessages = () => {
   return (req, res, next) => {
     return models.User.findOne({
       where: {
-        id: req.body.receiverId,
+        id: req.params.receiverId,
       }
     }).then((founduser) => {
       if (!founduser) throw errorFunction('user not found!', 404);
 
-      return founduser.getMessages({
+      return models.Message.findAll({
         where: {
-          receiverId: req.body.receiverId,
+          receiverId: req.params.receiverId,
           status: {
-            [Op.or]: 'failed',
+            [Op.ne]: 'failed',
           }
         }
       })
@@ -144,5 +140,52 @@ export const getReceivedMessages = () => {
     }))
     .catch(error => next(error));
 
+  }
+}
+
+export const getContacts = () => {
+  return (req, res, next) => {
+    return models.User.findOne({
+      where: {
+        id: req.params.userId
+      }
+    }).then((founduser) => {
+      if (!founduser) throw errorFunction('user not found!', 404);
+
+      return founduser.getContacts({
+        attributes: {
+          exclude: ['contactId', 'userId']
+        },
+        include: [
+          {
+            model: models.User,
+          }
+        ]
+      })
+    })
+    .then((contacts) => res.status(200).json({
+      contacts,
+      message: 'contacts successfully retrieved!'
+    }))
+    .catch(error => next(error))
+  }
+}
+
+export const removeUser = () => {
+  return (req, res, next) => {
+    return models.User.findOne({
+      where: {
+        id: req.params.userId
+      }
+    })
+    .then((foundUser) => {
+      if (!foundUser) throw errorFunction('user not found!', 404);
+
+      return foundUser.destroy();
+    })
+    .then(() => res.status(200).json({
+      message: 'user deleted successfully',
+    }))
+    .catch(error => next(error));
   }
 }

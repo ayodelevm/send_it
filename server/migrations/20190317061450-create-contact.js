@@ -13,12 +13,8 @@ module.exports = {
             msg: 'id must be uuid'
           }
         },
-        references: {
-          model: 'Users',
-          key: 'id'
-        }
       },
-      userId: {
+      ownerId: {
         type: Sequelize.UUID,
         allowNull: false,
         onDelete: 'CASCADE',

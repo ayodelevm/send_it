@@ -8,12 +8,15 @@ export default function errorHandler() {
   // error handlers must always take four arguments
   // eslint-disable-next-line
   return (error, req, res, next) => {
-    console.log(error, '============');
     if (error.validations) return res.status(422).json({ errors: error.validations });
     const { sequelize } = models;
     if (!error.code) {
       if (error instanceof sequelize.ValidationError || error instanceof sequelize.UniqueConstraintError) {
         error.code = 422;
+        error.message = error.errors ? error.errors[0].message : error.message;
+      } else if (error instanceof sequelize.DatabaseError) {
+        error.code = 400;
+        error.message = error.message;
       } else if (error instanceof sequelize.EmptyResultError) {
         error.code = 404;
         error.message = 'The resource requested was not found';

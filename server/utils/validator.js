@@ -29,8 +29,8 @@ export default class ValidatorClass {
 
       /* es-lint-disable-no-fallthrough */
       case 'contactId':
-        if (field === 'contactId' && value && payload.userId && validator
-          .equals(value, payload.userId)) {
+        if (field === 'contactId' && value && payload.ownerId && validator
+          .equals(value, payload.ownerId)) {
           return "You can't add a user itself!";
         }
         break;
@@ -47,7 +47,6 @@ export default class ValidatorClass {
    * @returns {object} returns validation status and object containing errors
    */
   static validateFields(enumArray, payload) {
-    // console.log(enumArray, '======', payload, '-----+++++++-------');
     const errors = {};
     enumArray.forEach((item) => {
       const value = payload[item];
@@ -106,7 +105,6 @@ export default class ValidatorClass {
         isValid
       };
     } catch (error) {
-      console.log({ error });
       return {
         errors: error,
         isValid: false,
