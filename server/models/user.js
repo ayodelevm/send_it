@@ -23,15 +23,14 @@ export default function(sequelize, DataTypes) {
   });
   User.associate = (models) => {
     User.hasMany(models.Contact, {
-      foreignKey: 'userId',
+      foreignKey: 'ownerId',
       onCascade: 'DELETE'
     });
 
     User.hasMany(models.Message, {
-      foreignKey: 'userId',
-      // as: 'sender',
+      foreignKey: 'senderId',
       onCascade: 'DELETE'
-    })
+    });
   }
   return User;
 };

@@ -16,6 +16,16 @@ export default function(sequelize, DataTypes) {
         }
       }
     },
+    receiverId: {
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
+      validate: {
+        isUUID: {
+          args: 4,
+          msg: 'id must be uuid'
+        }
+      }
+    },
     message: DataTypes.STRING,
     status: DataTypes.ENUM('failed', 'pending', 'sent'),
   }, {
@@ -24,11 +34,6 @@ export default function(sequelize, DataTypes) {
   Message.associate = (models) => {
     Message.belongsTo(models.User, {
       foreignKey: 'senderId',
-      onCascade: 'DELETE',
-    });
-
-    Message.belongsTo(models.Contact, {
-      foreignKey: 'receiverId',
       onCascade: 'DELETE',
     });
   }

@@ -45,3 +45,5 @@ app.get('/*', (req, res) => res.status(200).send("This endpoint doesn't exist ye
 server.listen(port, () => {
   winston.log('info', 'listening...');
 });
+
+export default app;

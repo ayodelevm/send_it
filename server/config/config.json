@@ -9,7 +9,7 @@
   "test": {
     "username": "andeladeveloper",
     "password": null,
-    "database": "arvo_p2p_test",
+    "database": "send_it_test",
     "host": "127.0.0.1",
     "dialect": "postgresql"
   },
