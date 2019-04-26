@@ -9,9 +9,8 @@
     "node": "8.12.0"
   },
   "scripts": {
-    "start": "yarn db:migrate & yarn create:sadmin & babel-node server/app.js",
+    "start": "yarn db:migrate & babel-node server/app.js",
     "start:dev": "nodemon --exec babel-node server/app.js",
-    "create:sadmin": "babel-node ./server/utils/createSprAdmin.js",
     "db:migrate": "sequelize db:migrate",
     "db:migrate:undo": "sequelize db:migrate:undo:all",
     "db:seed": "sequelize db:seed:all",
