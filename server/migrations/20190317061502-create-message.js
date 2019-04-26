@@ -24,16 +24,22 @@ module.exports = {
         onDelete: 'CASCADE',
         references: {
           model: 'Users',
-          key: 'id'
+          key: 'id',
         }
       },
       receiverId: {
         type: Sequelize.UUID,
         allowNull: false,
         onDelete: 'CASCADE',
+        validate: {
+          isUUID: {
+            args: 4,
+            msg: 'id must be uuid'
+          }
+        },
         references: {
-          model: 'Contacts',
-          key: 'contactId'
+          model: 'Users',
+          key: 'id',
         }
       },
       createdAt: {

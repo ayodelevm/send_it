@@ -14,10 +14,6 @@ export default function(sequelize, DataTypes) {
           args: 4,
           msg: 'id must be uuid'
         }
-      },
-      references: {
-        model: 'Users',
-        key: 'id'
       }
     },
   }, {
@@ -25,14 +21,9 @@ export default function(sequelize, DataTypes) {
 
   Contact.associate = (models) => {
     Contact.belongsTo(models.User, {
-      foreignKey: 'userId',
+      foreignKey: 'ownerId',
       onCascade: 'DELETE'
     });
-
-    Contact.hasMany(models.Message, {
-      foreignKey: 'receiverId',
-      onCascade: 'DELETE'
-    })
   }
   return Contact;
 };
